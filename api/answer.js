@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   try {
     const { question = "", instruction = "", choices = [] } = req.body || {};
 
-    // Check for missing key or data
+    // ✅ Check for missing key or data
     if (!process.env.GOOGLE_API_KEY) {
       return res.status(500).json({ error: "Missing GOOGLE_API_KEY env var" });
     }
@@ -17,9 +17,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing question or choices" });
     }
 
-    // Build prompt
+    // 🧠 Build the prompt for Gemini
     const prompt = `
-You are a concise quiz-answering assistant. Read the instruction, question and choices, and return ONLY the best single answer (no explanations, no numbering).
+You are a concise quiz-answering assistant. Read the instruction, question, and choices,
+and return ONLY the best single answer (no explanations, no numbering).
 
 Instruction:
 ${instruction}
@@ -28,12 +29,12 @@ Question:
 ${question}
 
 Choices:
-${choices.map((c,i)=>`${i+1}. ${c}`).join('\n')}
+${choices.map((c, i) => `${i + 1}. ${c}`).join('\n')}
 
 Respond with only the correct choice text (no number, no extra words).
     `.trim();
 
-    // --- Gemini 2.0 Flash-Lite endpoint ---
+    // ✨ Gemini 2.0 Flash-Lite endpoint
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${encodeURIComponent(process.env.GOOGLE_API_KEY)}`;
 
     const body = {
@@ -53,7 +54,8 @@ Respond with only the correct choice text (no number, no extra words).
     }
 
     const data = JSON.parse(raw);
-    const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "(no answer)";
+    const answer =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "(no answer)";
 
     return res.status(200).json({ answer });
   } catch (e) {
