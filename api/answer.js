@@ -1,15 +1,25 @@
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
+  // ⭐ IMPORTANT: send headers BEFORE ending OPTIONS
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
   try {
-    // ⭐ FIX: req.body is already parsed
-    const { text } = req.body || {};
+    // Handle body as string or object
+    let body = req.body;
+    if (typeof body === "string") {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        return res.status(400).json({ error: "Invalid JSON" });
+      }
+    }
+
+    const { text } = body || {};
     if (!text) {
       return res.status(400).json({ error: "No text provided" });
     }
@@ -25,17 +35,12 @@ export default async function handler(req, res) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text }]
-            }
-          ]
+          contents: [{ parts: [{ text }] }]
         })
       }
     );
 
     const data = await result.json();
-
     if (data.error) {
       return res.status(500).json({ error: data.error.message });
     }
