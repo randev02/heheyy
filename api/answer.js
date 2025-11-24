@@ -25,8 +25,10 @@ export default async function handler(req, res) {
     }
 
     // ⭐ Add the minimal prompt BEFORE the extracted text
-    const prompt = `Give only the final answer. No explanations, no extra words. If the correct answer requires multiple items (matching pairs, enumerations, lists), output all required items clearly and completely. Do not omit anything. Do not add anything else beyond the final answer.
-\n\n${text}`;
+    const prompt = `Provide only the final answer. Do not include explanations, reasoning, formatting, or extra text. 
+Interpret any tables, rows, pairs, lists, or structured data fully and use them correctly. 
+If the correct answer involves multiple items, pairs, or matched elements, output all required items completely and clearly. 
+Ensure the answer reflects the full intent of the question and includes everything needed for a complete response, but nothing else.\n\n${text}`;
 
     // ⭐ Correct endpoint for v1beta Gemini 2.0 Flash Lite
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${encodeURIComponent(process.env.GOOGLE_API_KEY)}`;
@@ -56,5 +58,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: e.message });
   }
 }
+
 
 
