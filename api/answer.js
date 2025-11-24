@@ -1,56 +1,54 @@
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // ⭐ IMPORTANT: send headers BEFORE ending OPTIONS
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
   try {
-    // Handle body as string or object
+    // Body may be string or object — support both
     let body = req.body;
     if (typeof body === "string") {
-      try {
-        body = JSON.parse(body);
-      } catch (e) {
-        return res.status(400).json({ error: "Invalid JSON" });
-      }
+      body = JSON.parse(body);
     }
 
     const { text } = body || {};
+
     if (!text) {
       return res.status(400).json({ error: "No text provided" });
     }
 
-    const apiKey = process.env.GOOGLE_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ error: "Missing GOOGLE_API_KEY" });
+    if (!process.env.GOOGLE_API_KEY) {
+      return res.status(500).json({ error: "Missing GOOGLE_API_KEY env var" });
     }
 
-    const result = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text }] }]
-        })
-      }
-    );
+    // ⭐ Correct endpoint for v1beta Gemini 2.0 Flash Lite
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${encodeURIComponent(process.env.GOOGLE_API_KEY)}`;
 
-    const data = await result.json();
-    if (data.error) {
-      return res.status(500).json({ error: data.error.message });
-    }
+    const payload = {
+      contents: [
+        {
+          parts: [{ text }]
+        }
+      ]
+    };
+
+    const raw = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).then(r => r.text());
+
+    const data = JSON.parse(raw);
 
     const output =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "No response generated";
+      data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
+      "(no answer)";
 
     return res.status(200).json({ output });
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
   }
 }
