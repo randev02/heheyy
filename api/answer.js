@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     }
 
     // ⭐ Add the minimal prompt BEFORE the extracted text
-    const prompt = `Give only the final answer required—no explanations, no steps, no formatting, no extra text. For multiple choice, give only the correct choice text. For fill-in-the-blank or matching, give only the filled answer or matches. Output nothing except the final answer.
+    const prompt = `Give only the final answer. No explanations, no extra words. If the correct answer requires multiple items (matching pairs, enumerations, lists), output all required items clearly and completely. Do not omit anything. Do not add anything else beyond the final answer.
 \n\n${text}`;
 
     // ⭐ Correct endpoint for v1beta Gemini 2.0 Flash Lite
@@ -56,4 +56,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: e.message });
   }
 }
+
 
