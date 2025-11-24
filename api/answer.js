@@ -25,7 +25,8 @@ export default async function handler(req, res) {
     }
 
     // ⭐ Add the minimal prompt BEFORE the extracted text
-    const prompt = `Give only the final answer. No other text.\n\n${text}`;
+    const prompt = `Give only the final answer required—no explanations, no steps, no formatting, no extra text. For multiple choice, give only the correct choice text. For fill-in-the-blank or matching, give only the filled answer or matches. Output nothing except the final answer.
+\n\n${text}`;
 
     // ⭐ Correct endpoint for v1beta Gemini 2.0 Flash Lite
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${encodeURIComponent(process.env.GOOGLE_API_KEY)}`;
@@ -55,3 +56,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: e.message });
   }
 }
+
