@@ -24,13 +24,16 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Missing GOOGLE_API_KEY env var" });
     }
 
+    // ⭐ Add the minimal prompt BEFORE the extracted text
+    const prompt = `Give only the final answer. No other text.\n\n${text}`;
+
     // ⭐ Correct endpoint for v1beta Gemini 2.0 Flash Lite
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${encodeURIComponent(process.env.GOOGLE_API_KEY)}`;
 
     const payload = {
       contents: [
         {
-          parts: [{ text }]
+          parts: [{ text: prompt }]
         }
       ]
     };
