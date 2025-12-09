@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // ⭐ Vercel body parsing fix (req.body is often empty)
+    // ⭐ Vercel body parsing fix
     let body = req.body;
 
     if (!body || typeof body === "string") {
@@ -43,20 +43,23 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Missing GOOGLE_API_KEY env var" });
     }
 
-    // ⭐ FINAL strict deterministic prompt
     const prompt = `You MUST output only the final answer. No explanations. No extra words.
-You MUST NOT refuse to answer.
-If the question is unclear or impossible, you MUST output the closest valid answer based ONLY on the choices provided.
-If matching items, output each pair in the exact format: left → right.
+You MUST NOT refuse to answer for any reason.
+If multiple answers or blanks appear, output each answer on its own line, in the exact order of the blanks.
+Do NOT add labels, numbering, punctuation, or explanations.
+Output ONLY the answer for each blank, one per line.
+
+If the question involves matching, output each pair as: left → right.
 Output ALL pairs and NOTHING ELSE.
-Do NOT rephrase, explain, add notes, comments, apologies, or punctuation.
-Your entire output MUST be exactly the answer, word for word, and nothing else.
+
+If the question seems unclear or incomplete, you MUST output the closest reasonable answer based ONLY on the provided text. NEVER respond with things like “cannot answer” or “not enough information”.
+
 You MUST give the same output every time for the same input.
 You MUST NOT change your answer once chosen.
 
 ${text}`;
 
-    // ⭐ Updated model to Gemini 2.5 Flash Lite
+    // ⭐ Updated to Gemini 2.5 Flash Lite
     const endpoint =
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" +
       encodeURIComponent(process.env.GOOGLE_API_KEY);
@@ -66,15 +69,10 @@ ${text}`;
         {
           parts: [{ text: prompt }]
         }
-      ],
-      generationConfig: {
-        temperature: 0, // deterministic
-        topK: 1,
-        topP: 1
-      }
+      ]
     };
 
-    // ⭐ Read raw response (Gemini sometimes returns non-JSON errors)
+    // Read raw text from Gemini (it sometimes returns strings instead of JSON)
     const raw = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -84,7 +82,7 @@ ${text}`;
     let data;
     try {
       data = JSON.parse(raw);
-    } catch {
+    } catch (err) {
       return res.status(500).json({
         error: "Gemini returned non-JSON response",
         raw
