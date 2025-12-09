@@ -3,7 +3,6 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
@@ -13,23 +12,23 @@ export default async function handler(req, res) {
   }
 
   try {
-    // ⭐ VERCEL BODY FIX — support both parsed and raw bodies
+    // ⭐ Vercel body parsing fix
     let body = req.body;
 
-    // If body is missing, manually read raw buffer (Vercel 2024 behavior)
     if (!body || typeof body === "string") {
       try {
-        const raw = typeof req.body === "string"
-          ? req.body
-          : await new Promise((resolve, reject) => {
-              let buf = "";
-              req.on("data", (chunk) => (buf += chunk));
-              req.on("end", () => resolve(buf));
-              req.on("error", reject);
-            });
+        const raw =
+          typeof req.body === "string"
+            ? req.body
+            : await new Promise((resolve, reject) => {
+                let buf = "";
+                req.on("data", (chunk) => (buf += chunk));
+                req.on("end", () => resolve(buf));
+                req.on("error", reject);
+              });
 
         body = raw ? JSON.parse(raw) : {};
-      } catch (e) {
+      } catch {
         return res.status(400).json({ error: "Invalid JSON body" });
       }
     }
@@ -44,16 +43,15 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Missing GOOGLE_API_KEY env var" });
     }
 
-    // ⭐ Minimal directive + extracted question
     const prompt = `Give only the final answer. No explanations.
-If the question requires matching items, output each pair together “left → right”.
-Do not output only the left or right items. Output all pairs.
-Do not add anything else.
-\n\n${text}`;
+If the question requires matching items, output each pair “left → right”.
+Do not output only left or only right.
+Output all pairs.
+Do not add anything else.\n\n${text}`;
 
-    // Gemini 2.0 Flash Lite endpoint
+    // ⭐ Updated to Gemini 2.5 Flash Lite
     const endpoint =
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=" +
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" +
       encodeURIComponent(process.env.GOOGLE_API_KEY);
 
     const payload = {
@@ -64,7 +62,7 @@ Do not add anything else.
       ]
     };
 
-    // ⭐ Always read raw text first (Gemini sometimes returns non-JSON error blobs)
+    // Read raw text from Gemini (it sometimes returns strings instead of JSON)
     const raw = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
