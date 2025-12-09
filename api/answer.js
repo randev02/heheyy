@@ -51,7 +51,7 @@ Do not add anything else.\n\n${text}`;
 
     // ⭐ Updated to Gemini 2.5 Flash Lite
     const endpoint =
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" +
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" +
       encodeURIComponent(process.env.GOOGLE_API_KEY);
 
     const payload = {
@@ -88,3 +88,4 @@ Do not add anything else.\n\n${text}`;
     return res.status(500).json({ error: e.message });
   }
 }
+
