@@ -43,21 +43,11 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Missing GOOGLE_API_KEY env var" });
     }
 
-    const prompt = `You MUST output only the final answer. No explanations. No extra words.
-You MUST NOT refuse to answer for any reason.
-If multiple answers or blanks appear, output each answer on its own line, in the exact order of the blanks.
-Do NOT add labels, numbering, punctuation, or explanations.
-Output ONLY the answer for each blank, one per line.
-
-If the question involves matching, output each pair as: left → right.
-Output ALL pairs and NOTHING ELSE.
-
-If the question seems unclear or incomplete, you MUST output the closest reasonable answer based ONLY on the provided text. NEVER respond with things like “cannot answer” or “not enough information”.
-
-You MUST give the same output every time for the same input.
-You MUST NOT change your answer once chosen.
-
-${text}`;
+    const prompt = `Give only the final answer. No explanations.
+If the question requires matching items, output each pair “left → right”.
+Do not output only left or only right.
+Output all pairs.
+Do not add anything else.\n\n${text}`;
 
     // ⭐ Updated to Gemini 2.5 Flash Lite
     const endpoint =
