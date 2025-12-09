@@ -3,15 +3,35 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
+  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   try {
-    // Body may be string or object — support both
+    // ⭐ VERCEL BODY FIX — support both parsed and raw bodies
     let body = req.body;
-    if (typeof body === "string") {
-      body = JSON.parse(body);
+
+    // If body is missing, manually read raw buffer (Vercel 2024 behavior)
+    if (!body || typeof body === "string") {
+      try {
+        const raw = typeof req.body === "string"
+          ? req.body
+          : await new Promise((resolve, reject) => {
+              let buf = "";
+              req.on("data", (chunk) => (buf += chunk));
+              req.on("end", () => resolve(buf));
+              req.on("error", reject);
+            });
+
+        body = raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        return res.status(400).json({ error: "Invalid JSON body" });
+      }
     }
 
     const { text } = body || {};
@@ -24,16 +44,17 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Missing GOOGLE_API_KEY env var" });
     }
 
-    // ⭐ Add the minimal prompt BEFORE the extracted text
-    const prompt = `Give only the final answer. No explanations. 
-If the question requires matching items, output each pair together in the format “left → right” for every row. 
-Do not output only the left items or only the right items. 
-Do not omit any pairs. 
-Do not add anything else beyond the exact pairs or final answer.
+    // ⭐ Minimal directive + extracted question
+    const prompt = `Give only the final answer. No explanations.
+If the question requires matching items, output each pair together “left → right”.
+Do not output only the left or right items. Output all pairs.
+Do not add anything else.
 \n\n${text}`;
 
-    // ⭐ Correct endpoint for v1beta Gemini 2.0 Flash Lite
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${encodeURIComponent(process.env.GOOGLE_API_KEY)}`;
+    // Gemini 2.0 Flash Lite endpoint
+    const endpoint =
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=" +
+      encodeURIComponent(process.env.GOOGLE_API_KEY);
 
     const payload = {
       contents: [
@@ -43,13 +64,22 @@ Do not add anything else beyond the exact pairs or final answer.
       ]
     };
 
+    // ⭐ Always read raw text first (Gemini sometimes returns non-JSON error blobs)
     const raw = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
-    }).then(r => r.text());
+    }).then((r) => r.text());
 
-    const data = JSON.parse(raw);
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch (err) {
+      return res.status(500).json({
+        error: "Gemini returned non-JSON response",
+        raw
+      });
+    }
 
     const output =
       data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
@@ -60,7 +90,3 @@ Do not add anything else beyond the exact pairs or final answer.
     return res.status(500).json({ error: e.message });
   }
 }
-
-
-
-
