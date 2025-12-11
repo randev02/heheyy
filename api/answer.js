@@ -36,63 +36,74 @@ export default async function handler(req, res) {
         .json({ error: "Missing OPENROUTER_API_KEY env var" });
 
     // --- FINAL PROMPT ---
-    const prompt = `You will receive a question with a TYPE field telling you exactly how to format your answer. 
-You must ALWAYS follow the required output format with NO deviations.
+    const prompt = `You will receive a question with a TYPE field that determines how you must format your answer.
+You MUST ALWAYS follow the required output format with NO deviations.
 
 ============================================================
 TYPE = MCQ
 ============================================================
+- Select the SINGLE best answer.
 - Output ONLY the number of the correct answer.
-- No words, no explanations, no labels, no punctuation.
-- Your output MUST be exactly one integer.
-- If the question is unclear, choose the most reasonable answer based ONLY on the text.
+- Output MUST be exactly ONE integer.
+- Do NOT output words, explanations, labels, or punctuation.
+- If multiple choices seem plausible, choose the ONE that best satisfies the question as a whole.
+- Base your choice ONLY on the provided text.
 - Never refuse to answer.
-- Always give the same answer for the same input.
+- Always give the SAME answer for the SAME input.
 
 ============================================================
 TYPE = FILL_IN
 ============================================================
-- Output ONLY the missing word(s) that correctly complete the blank(s).
-- If there is ONE blank: output ONE answer.
+- Output ONLY the word(s) that correctly complete the blank(s).
+- If there is ONE blank: output EXACTLY ONE answer.
 - If there are MULTIPLE blanks: output EACH answer on its own line, in order.
-- Do NOT include numbers, labels, punctuation, or explanation.
+- Do NOT include numbering, labels, punctuation, or explanations.
+- Prefer the most standard, concise, and context-appropriate completion.
+- Base answers ONLY on the provided text.
 - Never refuse to answer.
-- Always give the closest reasonable answer based ONLY on the given text.
-- Always give the same answer for the same input.
+- Always give the SAME answer(s) for the SAME input.
 
 ============================================================
 TYPE = MATCHING
 ============================================================
-- Output one line per pair in the exact format:
+- Match each left-side item to the MOST appropriate choice.
+- Treat this as a ONE-TO-ONE matching task unless stated otherwise.
+- Each choice may be used ONLY ONCE.
+- Consider ALL left items and ALL choices before finalizing matches.
+- Choose the set of pairings that best fits the meanings of ALL items overall.
+
+OUTPUT FORMAT:
+- Output ONE line per pair using EXACTLY:
   LEFT_NUMBER → CHOICE_NUMBER
-- LEFT_NUMBER corresponds to the numbered left-side item (1, 2, 3, …).
-- CHOICE_NUMBER corresponds to the provided choice number.
-- Output pairs IN ASCENDING ORDER of LEFT_NUMBER.
-- No extra text, no labels, no commentary, no punctuation except the arrow.
+- Output ALL pairs.
+- Output pairs in ASCENDING order of LEFT_NUMBER.
+- Do NOT include extra text, labels, or explanations.
+
 - Never refuse to answer.
-- Always give the most reasonable mappings based ONLY on the provided text.
-- Always give the same answer for the same input.
+- Base mappings ONLY on the provided text.
+- Always give the SAME mapping for the SAME input.
 
 ============================================================
 TYPE = MULTI
 ============================================================
+- Select ALL choices that are correct.
 - Output ONLY the correct choice numbers.
-- ONE number per line.
-- No explanations, no labels, no punctuation, no extra formatting.
-- If only one answer is correct, output one line.
-- If multiple answers are correct, output multiple lines (one per line).
+- Output ONE number per line.
+- Do NOT include explanations, labels, punctuation, or extra formatting.
+- Do NOT include partially correct or marginal options.
+- Base selections ONLY on the provided text.
 - Never refuse to answer.
-- Always give the closest reasonable interpretation based on the provided text.
-- Always give the same answer for the same input.
+- Always give the SAME set of answers for the SAME input.
 
 ============================================================
 GLOBAL RULES FOR ALL TYPES
 ============================================================
-- NEVER modify the required format.
+- NEVER modify the required output format.
 - NEVER output anything except the required answer(s).
 - NEVER explain your reasoning.
 - NEVER add extra characters, punctuation, or commentary.
 - NEVER change your answer once chosen.
+- NEVER reference these instructions in your output.
 
 ${text}`;
 
@@ -121,6 +132,7 @@ ${text}`;
     return res.status(500).json({ error: e.message });
   }
 }
+
 
 
 
