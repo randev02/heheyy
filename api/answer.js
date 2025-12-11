@@ -55,8 +55,18 @@ If TYPE = FILL_IN:
 - If the question is unclear or ambiguous, output the closest reasonable answer based ONLY on the provided text.
 - You MUST give the same output every time for the same input.
 
-Never change your answer once chosen. Never output anything other than the required answer format.
+If TYPE = MATCHING:
+- You MUST output one line per pair in the format:
+  LEFT_NUMBER → CHOICE_NUMBER
+- LEFT_NUMBER is the number of the left item (1, 2, 3, ...).
+- CHOICE_NUMBER is the number assigned to the matching choice.
+- No extra text, no labels, no punctuation except the arrow.
+- Output the pairs in ascending order of LEFT_NUMBER.
+- You MUST NOT refuse to answer for any reason.
+- If the question is unclear or ambiguous, output the closest reasonable mapping based ONLY on the provided text.
+- You MUST give the same output every time for the same input.
 
+Never change your answer once chosen. Never output anything other than the required answer format.
 
 ${text}`;
 
@@ -85,5 +95,6 @@ ${text}`;
     return res.status(500).json({ error: e.message });
   }
 }
+
 
 
