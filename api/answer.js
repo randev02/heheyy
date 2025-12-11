@@ -36,37 +36,63 @@ export default async function handler(req, res) {
         .json({ error: "Missing OPENROUTER_API_KEY env var" });
 
     // --- FINAL PROMPT ---
-    const prompt = `You will receive a question with a TYPE field that tells you what format the answer must be in.
+    const prompt = `You will receive a question with a TYPE field telling you exactly how to format your answer. 
+You must ALWAYS follow the required output format with NO deviations.
 
-If TYPE = MCQ:
-- You MUST output only the number of the correct answer.
-- No explanations, no words, no punctuation, no labels.
-- You MUST NOT refuse to answer for any reason.
-- If the question is unclear or ambiguous, output the closest reasonable answer based ONLY on the provided text.
-- Your answer MUST ALWAYS be a single integer.
-- You MUST give the same output every time for the same input.
+============================================================
+TYPE = MCQ
+============================================================
+- Output ONLY the number of the correct answer.
+- No words, no explanations, no labels, no punctuation.
+- Your output MUST be exactly one integer.
+- If the question is unclear, choose the most reasonable answer based ONLY on the text.
+- Never refuse to answer.
+- Always give the same answer for the same input.
 
-If TYPE = FILL_IN:
-- You MUST output only the missing word(s) needed to fill the blank(s).
-- One blank = output EXACTLY one answer.
-- Multiple blanks = output each answer on its own line, in order.
-- No numbers, no labels, no punctuation, no explanations.
-- You MUST NOT refuse to answer for any reason.
-- If the question is unclear or ambiguous, output the closest reasonable answer based ONLY on the provided text.
-- You MUST give the same output every time for the same input.
+============================================================
+TYPE = FILL_IN
+============================================================
+- Output ONLY the missing word(s) that correctly complete the blank(s).
+- If there is ONE blank: output ONE answer.
+- If there are MULTIPLE blanks: output EACH answer on its own line, in order.
+- Do NOT include numbers, labels, punctuation, or explanation.
+- Never refuse to answer.
+- Always give the closest reasonable answer based ONLY on the given text.
+- Always give the same answer for the same input.
 
-If TYPE = MATCHING:
-- You MUST output one line per pair in the format:
+============================================================
+TYPE = MATCHING
+============================================================
+- Output one line per pair in the exact format:
   LEFT_NUMBER → CHOICE_NUMBER
-- LEFT_NUMBER is the number of the left item (1, 2, 3, ...).
-- CHOICE_NUMBER is the number assigned to the matching choice.
-- No extra text, no labels, no punctuation except the arrow.
-- Output the pairs in ascending order of LEFT_NUMBER.
-- You MUST NOT refuse to answer for any reason.
-- If the question is unclear or ambiguous, output the closest reasonable mapping based ONLY on the provided text.
-- You MUST give the same output every time for the same input.
+- LEFT_NUMBER corresponds to the numbered left-side item (1, 2, 3, …).
+- CHOICE_NUMBER corresponds to the provided choice number.
+- Output pairs IN ASCENDING ORDER of LEFT_NUMBER.
+- No extra text, no labels, no commentary, no punctuation except the arrow.
+- Never refuse to answer.
+- Always give the most reasonable mappings based ONLY on the provided text.
+- Always give the same answer for the same input.
 
-Never change your answer once chosen. Never output anything other than the required answer format.
+============================================================
+TYPE = MULTI
+============================================================
+- Output ONLY the correct choice numbers.
+- ONE number per line.
+- No explanations, no labels, no punctuation, no extra formatting.
+- If only one answer is correct, output one line.
+- If multiple answers are correct, output multiple lines (one per line).
+- Never refuse to answer.
+- Always give the closest reasonable interpretation based on the provided text.
+- Always give the same answer for the same input.
+
+============================================================
+GLOBAL RULES FOR ALL TYPES
+============================================================
+- NEVER modify the required format.
+- NEVER output anything except the required answer(s).
+- NEVER explain your reasoning.
+- NEVER add extra characters, punctuation, or commentary.
+- NEVER change your answer once chosen.
 
 ${text}`;
 
@@ -95,6 +121,7 @@ ${text}`;
     return res.status(500).json({ error: e.message });
   }
 }
+
 
 
 
