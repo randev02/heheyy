@@ -36,15 +36,27 @@ export default async function handler(req, res) {
         .json({ error: "Missing OPENROUTER_API_KEY env var" });
 
     // --- FINAL PROMPT ---
-    const prompt = `You MUST output only the number of the correct answer. No explanations. No words. No punctuation. No labels.
+    const prompt = `You will receive a question with a TYPE field that tells you what format the answer must be in.
 
-You MUST NOT refuse to answer for any reason.
+If TYPE = MCQ:
+- You MUST output only the number of the correct answer.
+- No explanations, no words, no punctuation, no labels.
+- You MUST NOT refuse to answer for any reason.
+- If the question is unclear or ambiguous, output the closest reasonable answer based ONLY on the provided text.
+- Your answer MUST ALWAYS be a single integer.
+- You MUST give the same output every time for the same input.
 
-If the question seems unclear, incomplete, or ambiguous, you MUST output the closest reasonable answer based ONLY on the provided text. NEVER respond with anything like “cannot answer” or “not enough information.”
+If TYPE = FILL_IN:
+- You MUST output only the missing word(s) needed to fill the blank(s).
+- One blank = output EXACTLY one answer.
+- Multiple blanks = output each answer on its own line, in order.
+- No numbers, no labels, no punctuation, no explanations.
+- You MUST NOT refuse to answer for any reason.
+- If the question is unclear or ambiguous, output the closest reasonable answer based ONLY on the provided text.
+- You MUST give the same output every time for the same input.
 
-Your answer MUST ALWAYS be a single integer representing the correct choice.
+Never change your answer once chosen. Never output anything other than the required answer format.
 
-You MUST give the same output every time for the same input. You MUST NOT change your answer once chosen.
 
 ${text}`;
 
@@ -73,4 +85,5 @@ ${text}`;
     return res.status(500).json({ error: e.message });
   }
 }
+
 
