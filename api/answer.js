@@ -36,19 +36,15 @@ export default async function handler(req, res) {
         .json({ error: "Missing OPENROUTER_API_KEY env var" });
 
     // --- FINAL PROMPT ---
-    const prompt = `You MUST output only the final answer. No explanations. No extra words.
+    const prompt = `You MUST output only the number of the correct answer. No explanations. No words. No punctuation. No labels.
+
 You MUST NOT refuse to answer for any reason.
-If multiple answers or blanks appear, output each answer on its own line, in the exact order of the blanks.
-Do NOT add labels, numbering, punctuation, or explanations.
-Output ONLY the answer for each blank, one per line.
 
-If the question involves matching, output each pair as: left → right.
-Output ALL pairs and NOTHING ELSE.
+If the question seems unclear, incomplete, or ambiguous, you MUST output the closest reasonable answer based ONLY on the provided text. NEVER respond with anything like “cannot answer” or “not enough information.”
 
-If the question seems unclear or incomplete, you MUST output the closest reasonable answer based ONLY on the provided text. NEVER respond with things like “cannot answer” or “not enough information”.
+Your answer MUST ALWAYS be a single integer representing the correct choice.
 
-You MUST give the same output every time for the same input.
-You MUST NOT change your answer once chosen.
+You MUST give the same output every time for the same input. You MUST NOT change your answer once chosen.
 
 ${text}`;
 
@@ -77,3 +73,4 @@ ${text}`;
     return res.status(500).json({ error: e.message });
   }
 }
+
