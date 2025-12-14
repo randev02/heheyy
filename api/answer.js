@@ -115,7 +115,7 @@ ${text}`;
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openai/gpt-oss-20b",
+        model: "arcee-ai/trinity-mini:free",
         messages: [{ role: "user", content: prompt }],
         temperature: 0
       })
