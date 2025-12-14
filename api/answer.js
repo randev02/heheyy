@@ -115,7 +115,7 @@ ${text}`;
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "arcee-ai/trinity-mini:free",
+        model: "openai/gpt-oss-20b:free",
         messages: [{ role: "user", content: prompt }],
         temperature: 0
       })
@@ -132,6 +132,7 @@ ${text}`;
     return res.status(500).json({ error: e.message });
   }
 }
+
 
 
 
