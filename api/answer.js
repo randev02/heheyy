@@ -115,7 +115,7 @@ ${text}`;
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openai/gpt-oss-120b:free",
+        model: "google/gemma-3n-e2b-it:free",
         messages: [{ role: "user", content: prompt }],
         temperature: 0
       })
@@ -132,6 +132,7 @@ ${text}`;
     return res.status(500).json({ error: e.message });
   }
 }
+
 
 
 
