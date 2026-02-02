@@ -30,10 +30,10 @@ export default async function handler(req, res) {
     const { text } = body || {};
     if (!text) return res.status(400).json({ error: "No text provided" });
 
-    if (!process.env.OPENROUTER_API_KEY)
+    if (!process.env.GEMINI_API_KEY)
       return res
         .status(500)
-        .json({ error: "Missing OPENROUTER_API_KEY env var" });
+        .json({ error: "Missing GEMINI_API_KEY env var" });
 
     // --- FINAL PROMPT ---
     const prompt = `You will receive a question with a TYPE field that determines how you must format your answer.
@@ -107,24 +107,26 @@ GLOBAL RULES FOR ALL TYPES
 
 ${text}`;
 
-    // --- OpenRouter request ---
-    const responseRaw = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    // --- Gemini request ---
+    const responseRaw = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "arcee-ai/trinity-mini:free",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0
+        contents: [{
+          parts: [{ text: prompt }]
+        }],
+        generationConfig: {
+          temperature: 0
+        }
       })
     });
 
     const response = await responseRaw.json();
 
     const output =
-      response?.choices?.[0]?.message?.content?.trim() || "(no answer)";
+      response?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "(no answer)";
 
     return res.status(200).json({ output });
 
@@ -132,13 +134,3 @@ ${text}`;
     return res.status(500).json({ error: e.message });
   }
 }
-
-
-
-
-
-
-
-
-
-
