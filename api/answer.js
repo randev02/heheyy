@@ -1,5 +1,3 @@
-convert this t othat but do not change anything else, just the endpoint and the environment variable name for key:
-
 export default async function handler(req, res) {
   // --- CORS ---
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -134,3 +132,4 @@ ${text}`;
     return res.status(500).json({ error: e.message });
   }
 }
+
