@@ -115,7 +115,7 @@ ${text}`;
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "google/gemma-3n-e2b-it:free",
+        model: "meta-llama/llama-3.1-8b-instruct:free",
         messages: [{ role: "user", content: prompt }],
         temperature: 0
       })
@@ -132,6 +132,7 @@ ${text}`;
     return res.status(500).json({ error: e.message });
   }
 }
+
 
 
 
