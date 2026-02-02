@@ -115,7 +115,7 @@ ${text}`;
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "liquid/lfm-2.5-1.2b-thinking:free",
+        model: "nvidia/nemotron-nano-9b-v2:free",
         messages: [{ role: "user", content: prompt }],
         temperature: 0
       })
@@ -132,5 +132,6 @@ ${text}`;
     return res.status(500).json({ error: e.message });
   }
 }
+
 
 
