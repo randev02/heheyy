@@ -30,11 +30,10 @@ export default async function handler(req, res) {
     const { text } = body || {};
     if (!text) return res.status(400).json({ error: "No text provided" });
 
-    // --- Check LLM7 Key ---
-    if (!process.env.LLM7)
+    if (!process.env.OPENROUTER_API_KEY)
       return res
         .status(500)
-        .json({ error: "Missing LLM7 env var" });
+        .json({ error: "Missing OPENROUTER_API_KEY env var" });
 
     // --- FINAL PROMPT ---
     const prompt = `You will receive a question with a TYPE field that determines how you must format your answer.
@@ -108,15 +107,15 @@ GLOBAL RULES FOR ALL TYPES
 
 ${text}`;
 
-    // --- LLM7 request ---
-    const responseRaw = await fetch("https://api.llm7.io/v1/chat/completions", {
+    // --- OpenRouter request ---
+    const responseRaw = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.LLM7}`,
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "default",
+        model: "google/gemma-3n-e2b-it:free",
         messages: [{ role: "user", content: prompt }],
         temperature: 0
       })
