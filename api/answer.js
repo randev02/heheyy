@@ -115,7 +115,7 @@ ${text}`;
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "liquid/lfm-2.5-1.2b-instruct:free",
+        model: "liquid/lfm-2.5-1.2b-thinking:free",
         messages: [{ role: "user", content: prompt }],
         temperature: 0
       })
@@ -132,4 +132,5 @@ ${text}`;
     return res.status(500).json({ error: e.message });
   }
 }
+
 
