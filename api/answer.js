@@ -115,7 +115,7 @@ ${text}`;
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "meta-llama/llama-3.1-8b-instruct:free",
+        model: "arcee-ai/trinity-large-preview:free",
         messages: [{ role: "user", content: prompt }],
         temperature: 0
       })
@@ -132,6 +132,7 @@ ${text}`;
     return res.status(500).json({ error: e.message });
   }
 }
+
 
 
 
