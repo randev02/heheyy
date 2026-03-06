@@ -117,7 +117,7 @@ ${subjectLine}${text}`;
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "liquid/lfm-2.5-1.2b-instruct:free",
+        model: "google/gemma-3n-e4b-it:free",
         messages: [{ role: "user", content: prompt }],
         temperature: 0
       })
@@ -134,6 +134,3 @@ ${subjectLine}${text}`;
     return res.status(500).json({ error: e.message });
   }
 }
-
-
-
