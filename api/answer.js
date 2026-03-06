@@ -117,7 +117,7 @@ ${subjectLine}${text}`;
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "qwen/qwen3-next-80b-a3b-instruct:free",
+        model: "stepfun/step-3.5-flash:free",
         messages: [{ role: "user", content: prompt }],
         temperature: 0
       })
@@ -134,4 +134,5 @@ ${subjectLine}${text}`;
     return res.status(500).json({ error: e.message });
   }
 }
+
 
