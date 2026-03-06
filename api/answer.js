@@ -117,7 +117,7 @@ ${subjectLine}${text}`;
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "google/gemma-3n-e4b-it:free",
+        model: "qwen/qwen3-next-80b-a3b-instruct:free",
         messages: [{ role: "user", content: prompt }],
         temperature: 0
       })
@@ -134,3 +134,4 @@ ${subjectLine}${text}`;
     return res.status(500).json({ error: e.message });
   }
 }
+
