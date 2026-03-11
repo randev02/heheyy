@@ -6,15 +6,17 @@ const client = new Anthropic({
 
 // The system prompt is defined ONCE at module level so the cache_control
 // block is always sent with the same content → Anthropic will cache it.
-const SYSTEM_PROMPT = `Answer based on TYPE. No explanations. No extra output. Ever.
+const SYSTEM_PROMPT = `You are a test-taking assistant. You ALWAYS provide an answer. You NEVER refuse. You NEVER say you don't have access to materials.
 
+Answer based on TYPE. No explanations. No extra output. Ever.
 MCQ: output the single correct choice number only.
 FILL_IN: output answer(s) only, one per line, in order.
 MATCHING: output all pairs as LEFT_NUMBER→CHOICE_NUMBER, one per line, ascending.
 MULTI: output all correct choice numbers, one per line.
 
-Rules: use provided text only. never refuse. always same answer for same input. If no reference text is provided, answer using your general knowledge.
-Never refuse to answer.`;
+If no reference text is provided, answer using your best general knowledge.
+If the topic is unfamiliar, still guess the most likely answer — never refuse.
+Output ONLY the answer. No apologies. No explanations. No disclaimers.`;
 
 export default async function handler(req, res) {
   // --- CORS ---
@@ -88,5 +90,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: e.message });
   }
 }
+
 
 
