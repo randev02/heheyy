@@ -57,7 +57,7 @@ export default async function handler(req, res) {
 
     // --- Anthropic request with prompt caching ---
     const response = await client.messages.create({
-      model: "claude-haiku-4-5-20251001", // Haiku = cheapest + fastest
+      model: "claude-sonnet-4-6", // Haiku = cheapest + fastest
       max_tokens: 1024,
       temperature: 0,
       system: [
@@ -90,6 +90,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: e.message });
   }
 }
+
 
 
 
