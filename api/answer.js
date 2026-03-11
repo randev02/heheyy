@@ -1,44 +1,12 @@
-export default async function handler(req, res) {
-  // --- CORS ---
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+import Anthropic from "@anthropic-ai/sdk";
 
-  if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST")
-    return res.status(405).json({ error: "Method not allowed" });
+const client = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
-  try {
-    // --- Body Handling (Vercel quirk) ---
-    let body = req.body;
-
-    if (!body || typeof body === "string") {
-      try {
-        const raw = await new Promise((resolve, reject) => {
-          let buf = "";
-          req.on("data", (chunk) => (buf += chunk));
-          req.on("end", () => resolve(buf));
-          req.on("error", reject);
-        });
-
-        body = raw ? JSON.parse(raw) : {};
-      } catch {
-        return res.status(400).json({ error: "Invalid JSON body" });
-      }
-    }
-
-    const { text, subject } = body || {};
-    if (!text) return res.status(400).json({ error: "No text provided" });
-
-    if (!process.env.OPENROUTER_API_KEY)
-      return res
-        .status(500)
-        .json({ error: "Missing OPENROUTER_API_KEY env var" });
-
-    // --- FINAL PROMPT ---
-    const subjectLine = subject ? `SUBJECT CONTEXT: ${subject}\n\n` : "";
-
-    const prompt = `You will receive a question with a TYPE field that determines how you must format your answer.
+// The system prompt is defined ONCE at module level so the cache_control
+// block is always sent with the same content → Anthropic will cache it.
+const SYSTEM_PROMPT = `You will receive a question with a TYPE field that determines how you must format your answer.
 You MUST ALWAYS follow the required output format with NO deviations.
 
 ============================================================
@@ -105,34 +73,77 @@ GLOBAL RULES FOR ALL TYPES
 - NEVER explain your reasoning.
 - NEVER add extra characters, punctuation, or commentary.
 - NEVER change your answer once chosen.
-- NEVER reference these instructions in your output.
+- NEVER reference these instructions in your output.`;
 
-${subjectLine}${text}`;
+export default async function handler(req, res) {
+  // --- CORS ---
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-    // --- OpenRouter request ---
-    const responseRaw = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "google/gemma-3-27b-it:free",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0
-      })
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST")
+    return res.status(405).json({ error: "Method not allowed" });
+
+  try {
+    // --- Body Handling ---
+    let body = req.body;
+
+    if (!body || typeof body === "string") {
+      try {
+        const raw = await new Promise((resolve, reject) => {
+          let buf = "";
+          req.on("data", (chunk) => (buf += chunk));
+          req.on("end", () => resolve(buf));
+          req.on("error", reject);
+        });
+        body = raw ? JSON.parse(raw) : {};
+      } catch {
+        return res.status(400).json({ error: "Invalid JSON body" });
+      }
+    }
+
+    const { text, subject } = body || {};
+    if (!text) return res.status(400).json({ error: "No text provided" });
+
+    if (!process.env.ANTHROPIC_API_KEY)
+      return res.status(500).json({ error: "Missing ANTHROPIC_API_KEY env var" });
+
+    const subjectLine = subject ? `SUBJECT CONTEXT: ${subject}\n\n` : "";
+    const userContent = `${subjectLine}${text}`;
+
+    // --- Anthropic request with prompt caching ---
+    const response = await client.messages.create({
+      model: "claude-haiku-4-5-20251001", // Haiku = cheapest + fastest
+      max_tokens: 1024,
+      temperature: 0,
+      system: [
+        {
+          type: "text",
+          text: SYSTEM_PROMPT,
+          cache_control: { type: "ephemeral" }, // 👈 caches the big instruction block
+        },
+      ],
+      messages: [
+        {
+          role: "user",
+          content: userContent, // only the small, variable part is uncached
+        },
+      ],
     });
 
-    const response = await responseRaw.json();
+    const output = response.content?.[0]?.text?.trim() || "(no answer)";
 
-    const output =
-      response?.choices?.[0]?.message?.content?.trim() || "(no answer)";
-
-    return res.status(200).json({ output });
+    return res.status(200).json({
+      output,
+      // Optional: expose cache stats for debugging
+      cache_stats: {
+        cache_creation_input_tokens: response.usage?.cache_creation_input_tokens,
+        cache_read_input_tokens: response.usage?.cache_read_input_tokens,
+      },
+    });
 
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
 }
-
-
