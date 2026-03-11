@@ -13,7 +13,8 @@ FILL_IN: output answer(s) only, one per line, in order.
 MATCHING: output all pairs as LEFT_NUMBER→CHOICE_NUMBER, one per line, ascending.
 MULTI: output all correct choice numbers, one per line.
 
-Rules: use provided text only. never refuse. always same answer for same input.`;
+Rules: use provided text only. never refuse. always same answer for same input. If no reference text is provided, answer using your general knowledge.
+Never refuse to answer.`;
 
 export default async function handler(req, res) {
   // --- CORS ---
@@ -87,4 +88,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: e.message });
   }
 }
+
 
