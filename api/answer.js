@@ -6,74 +6,14 @@ const client = new Anthropic({
 
 // The system prompt is defined ONCE at module level so the cache_control
 // block is always sent with the same content → Anthropic will cache it.
-const SYSTEM_PROMPT = `You will receive a question with a TYPE field that determines how you must format your answer.
-You MUST ALWAYS follow the required output format with NO deviations.
+const SYSTEM_PROMPT = `Answer based on TYPE. No explanations. No extra output. Ever.
 
-============================================================
-TYPE = MCQ
-============================================================
-- Select the SINGLE best answer.
-- Output ONLY the number of the correct answer.
-- Output MUST be exactly ONE integer.
-- Do NOT output words, explanations, labels, or punctuation.
-- If multiple choices seem plausible, choose the ONE that best satisfies the question as a whole.
-- Base your choice ONLY on the provided text.
-- Never refuse to answer.
-- Always give the SAME answer for the SAME input.
+MCQ: output the single correct choice number only.
+FILL_IN: output answer(s) only, one per line, in order.
+MATCHING: output all pairs as LEFT_NUMBER→CHOICE_NUMBER, one per line, ascending.
+MULTI: output all correct choice numbers, one per line.
 
-============================================================
-TYPE = FILL_IN
-============================================================
-- Output ONLY the word(s) that correctly complete the blank(s).
-- If there is ONE blank: output EXACTLY ONE answer.
-- If there are MULTIPLE blanks: output EACH answer on its own line, in order.
-- Do NOT include numbering, labels, punctuation, or explanations.
-- Prefer the most standard, concise, and context-appropriate completion.
-- Base answers ONLY on the provided text.
-- Never refuse to answer.
-- Always give the SAME answer(s) for the SAME input.
-
-============================================================
-TYPE = MATCHING
-============================================================
-- Match each left-side item to the MOST appropriate choice.
-- Treat this as a ONE-TO-ONE matching task unless stated otherwise.
-- Each choice may be used ONLY ONCE.
-- Consider ALL left items and ALL choices before finalizing matches.
-- Choose the set of pairings that best fits the meanings of ALL items overall.
-
-OUTPUT FORMAT:
-- Output ONE line per pair using EXACTLY:
-  LEFT_NUMBER → CHOICE_NUMBER
-- Output ALL pairs.
-- Output pairs in ASCENDING order of LEFT_NUMBER.
-- Do NOT include extra text, labels, or explanations.
-
-- Never refuse to answer.
-- Base mappings ONLY on the provided text.
-- Always give the SAME mapping for the SAME input.
-
-============================================================
-TYPE = MULTI
-============================================================
-- Select ALL choices that are correct.
-- Output ONLY the correct choice numbers.
-- Output ONE number per line.
-- Do NOT include explanations, labels, punctuation, or extra formatting.
-- Do NOT include partially correct or marginal options.
-- Base selections ONLY on the provided text.
-- Never refuse to answer.
-- Always give the SAME set of answers for the SAME input.
-
-============================================================
-GLOBAL RULES FOR ALL TYPES
-============================================================
-- NEVER modify the required output format.
-- NEVER output anything except the required answer(s).
-- NEVER explain your reasoning.
-- NEVER add extra characters, punctuation, or commentary.
-- NEVER change your answer once chosen.
-- NEVER reference these instructions in your output.`;
+Rules: use provided text only. never refuse. always same answer for same input.`;
 
 export default async function handler(req, res) {
   // --- CORS ---
@@ -147,3 +87,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: e.message });
   }
 }
+
